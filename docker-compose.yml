@@ -1,0 +1,38 @@
+version: '3.9'
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mediscan-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mediscan_db
+      MYSQL_USER: mediscan
+      MYSQL_PASSWORD: mediscan
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/mysql:/docker-entrypoint-initdb.d
+  backend:
+    build: ./backend
+    container_name: mediscan-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/mediscan_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: mediscan
+      SPRING_DATASOURCE_PASSWORD: mediscan
+      OCR_SERVICE_URL: http://ocr-service:8000
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    depends_on:
+      - mysql
+      - ocr-service
+    ports:
+      - '8080:8080'
+  ocr-service:
+    build: ./ocr-service
+    container_name: mediscan-ocr
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - '8000:8000'
+volumes:
+  mysql_data:

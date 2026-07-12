@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.vscode/
+.idea/
+*.log
+uploads/
+backend/target/
+__pycache__/
+*.pyc
+.env
+.venv/
