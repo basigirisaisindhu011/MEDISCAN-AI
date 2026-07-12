@@ -15,7 +15,7 @@ import org.springframework.web.client.RestTemplate;
 public class OcrClient {
   private final RestTemplate restTemplate = new RestTemplate();
 
-  @Value("${ocr.service.url:http://localhost:8000}")
+  @Value("${OCR_SERVICE_URL}")
   private String ocrServiceUrl;
 
   public Map<String, Object> processImage(byte[] imageBytes) {
