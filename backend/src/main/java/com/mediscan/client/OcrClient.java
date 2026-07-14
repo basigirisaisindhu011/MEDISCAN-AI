@@ -15,7 +15,7 @@ import org.springframework.web.client.RestTemplate;
 public class OcrClient {
   private final RestTemplate restTemplate = new RestTemplate();
 
-  @Value("${OCR_SERVICE_URL}")
+  @Value("${ocr.service.url}")
   private String ocrServiceUrl;
 
   public Map<String, Object> processImage(byte[] imageBytes) {
@@ -31,6 +31,15 @@ public class OcrClient {
     });
 
     HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-    return restTemplate.postForObject(ocrServiceUrl + "/process", requestEntity, Map.class);
+    try {
+    return restTemplate.postForObject(
+        ocrServiceUrl + "/process",
+        requestEntity,
+        Map.class
+    );
+    } catch (Exception e) {
+        e.printStackTrace();
+        throw e;
+    }
   }
 }
