@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { FiClipboard, FiActivity, FiClock, FiUser } from 'react-icons/fi';
 
-const api = axios.create({ baseURL: 'http://localhost:8080/api' });
+const api = axios.create({ baseURL: import.meta.env.VITE_API_URL + "/api" });
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({ totalPrescriptions: 0, medicinesExtracted: 0, recentUploads: 0, confidence: 0 });
