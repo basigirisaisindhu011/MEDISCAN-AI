@@ -6,6 +6,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -19,11 +20,18 @@ public class OcrClient {
     @Value("${ocr.service.url:https://mediscan-ai-3-6yw4.onrender.com}")
     private String ocrServiceUrl;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+
+    public OcrClient() {
+        // ✅ Add generous 60-second timeouts to handle Render cold starts!
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(60000);
+        factory.setReadTimeout(60000);
+        this.restTemplate = new RestTemplate(factory);
+    }
 
     @SuppressWarnings("unchecked")
     public Map<String, Object> processImage(byte[] imageBytes) {
-        // ✅ Ensures /process is properly appended to the base URL
         String endpoint = ocrServiceUrl.endsWith("/process") 
                 ? ocrServiceUrl 
                 : ocrServiceUrl.replaceAll("/+$", "") + "/process";
@@ -42,7 +50,12 @@ public class OcrClient {
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(endpoint, requestEntity, Map.class);
-        return response.getBody();
+        try {
+            ResponseEntity<Map> response = restTemplate.postForEntity(endpoint, requestEntity, Map.class);
+            return response.getBody() != null ? response.getBody() : Map.of();
+        } catch (Exception e) {
+            System.err.println("OCR Service Error: " + e.getMessage());
+            throw new RuntimeException("Failed to process image via OCR service: " + e.getMessage(), e);
+        }
     }
 }
