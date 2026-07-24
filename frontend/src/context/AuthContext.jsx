@@ -3,8 +3,12 @@ import axios from 'axios';
 
 const AuthContext = createContext(null);
 
+// 1. Fixed variable name to VITE_API_BASE_URL
+// 2. Added fallback URL in case the env variable is missing
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://mediscan-backend-lipg.onrender.com';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/api",
+  baseURL: `${BASE_URL}/api`,
 });
 
 export function AuthProvider({ children }) {
