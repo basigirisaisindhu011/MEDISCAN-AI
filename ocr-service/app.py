@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
 from PIL import UnidentifiedImageError
@@ -6,6 +7,11 @@ from services.gemini_service import parse_prescription
 import uvicorn
 
 app = FastAPI(title="MediScan OCR Service")
+
+# ✅ Health Check Route (fixes the 404 logs on Render)
+@app.get("/")
+async def root():
+    return {"status": "ok", "service": "MediScan OCR Service"}
 
 @app.post("/process")
 async def process_image(file: UploadFile = File(...)):
@@ -24,6 +30,14 @@ async def process_image(file: UploadFile = File(...)):
             "text": "",
             "parsed": {}
         })
+    except Exception as e:
+        # ✅ Catch any other unexpected exceptions (API issues, processing errors)
+        return JSONResponse(status_code=500, content={
+            "error": str(e),
+            "text": "",
+            "parsed": {}
+        })
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
