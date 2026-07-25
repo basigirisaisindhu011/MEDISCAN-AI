@@ -44,6 +44,24 @@ public class AuthService {
         return new AuthResponse(token, user);
     }
 
+    public AuthResponse processGoogleLogin(String email, String name) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Invalid Google Account details");
+        }
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            String userName = (name != null && !name.isBlank()) ? name : email.split("@")[0];
+            User newUser = new User(
+                userName,
+                email,
+                passwordEncoder.encode(java.util.UUID.randomUUID().toString()),
+                User.Role.USER
+            );
+            return userRepository.save(newUser);
+        });
+        String token = jwtService.generateToken(user);
+        return new AuthResponse(token, user);
+    }
+
     // ✅ Search by both email and identifier in case principal.getName() returns either
     public Optional<User> getCurrentUser(String identifier) {
         if (identifier == null || identifier.isBlank()) {

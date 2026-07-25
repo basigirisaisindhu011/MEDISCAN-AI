@@ -17,7 +17,7 @@ import java.util.Map;
 @Component
 public class OcrClient {
 
-    @Value("${ocr.service.url:https://mediscan-ai-3-6yw4.onrender.com}")
+    @Value("${ocr.service.url:http://localhost:8000}")
     private String ocrServiceUrl;
 
     private final RestTemplate restTemplate;

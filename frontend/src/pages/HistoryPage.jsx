@@ -1,15 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-
-const api = axios.create({ baseURL: import.meta.env.VITE_API_URL + "/api" });
+import api from '../api';
 
 export default function HistoryPage() {
   const [prescriptions, setPrescriptions] = useState([]);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    api.defaults.headers.common.Authorization = `Bearer ${token}`;
     api.get('/prescriptions').then((res) => setPrescriptions(res.data.data || []));
   }, []);
 
@@ -23,9 +19,12 @@ export default function HistoryPage() {
               <div className="font-medium">{item.doctorName || 'Doctor'}</div>
               <div className="text-sm text-slate-500">{item.hospitalName || 'Hospital'} · {item.prescriptionDate || 'Unknown date'}</div>
             </div>
-            <Link to={`/prescriptions/${item.id}`} className="text-sm text-blue-600">Details</Link>
+            <Link to={`/prescriptions/${item.id}`} className="text-sm text-blue-600 font-medium">Details</Link>
           </div>
         ))}
+        {prescriptions.length === 0 && (
+          <div className="text-slate-500 text-sm py-4 text-center">No prescriptions found.</div>
+        )}
       </div>
     </div>
   );

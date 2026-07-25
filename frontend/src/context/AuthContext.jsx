@@ -1,15 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
+import api from '../api';
 
 const AuthContext = createContext(null);
-
-// 1. Fixed variable name to VITE_API_BASE_URL
-// 2. Added fallback URL in case the env variable is missing
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://mediscan-backend-lipg.onrender.com';
-
-const api = axios.create({
-  baseURL: `${BASE_URL}/api`,
-});
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -21,7 +13,6 @@ export function AuthProvider({ children }) {
       setLoading(false);
       return;
     }
-    api.defaults.headers.common.Authorization = `Bearer ${token}`;
     api.get('/users/profile')
       .then((res) => setUser(res.data.data))
       .catch(() => localStorage.removeItem('token'))
@@ -31,22 +22,41 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
     localStorage.setItem('token', res.data.data.token);
-    api.defaults.headers.common.Authorization = `Bearer ${res.data.data.token}`;
     setUser(res.data.data.user);
   };
 
   const register = async (payload) => {
     const res = await api.post('/auth/register', payload);
+    if (res.data.data?.token) {
+      localStorage.setItem('token', res.data.data.token);
+      setUser(res.data.data.user);
+    }
+    return res.data;
+  };
+
+  const googleLogin = async (email, name) => {
+    const res = await api.post('/auth/google', { email, name });
+    if (res.data.data?.token) {
+      localStorage.setItem('token', res.data.data.token);
+      setUser(res.data.data.user);
+    }
+    return res.data;
+  };
+
+  const updateProfile = async (payload) => {
+    const res = await api.put('/users/profile', payload);
+    if (res.data.data) {
+      setUser(res.data.data);
+    }
     return res.data;
   };
 
   const logout = () => {
     localStorage.removeItem('token');
-    delete api.defaults.headers.common.Authorization;
     setUser(null);
   };
 
-  const value = useMemo(() => ({ user, loading, login, register, logout }), [user, loading]);
+  const value = useMemo(() => ({ user, loading, login, register, googleLogin, updateProfile, logout }), [user, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

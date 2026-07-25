@@ -32,4 +32,11 @@ public class AuthController {
   public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
     return ResponseEntity.ok(ApiResponse.success("Login successful", authService.login(request)));
   }
+
+  @PostMapping("/google")
+  public ResponseEntity<ApiResponse<AuthResponse>> googleLogin(@RequestBody java.util.Map<String, String> payload) {
+    String email = payload.get("email");
+    String name = payload.get("name");
+    return ResponseEntity.ok(ApiResponse.success("Google login successful", authService.processGoogleLogin(email, name)));
+  }
 }

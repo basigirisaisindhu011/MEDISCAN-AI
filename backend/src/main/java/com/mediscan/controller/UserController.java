@@ -1,6 +1,7 @@
 package com.mediscan.controller;
 
 import java.security.Principal;
+import java.util.Map;
 
 import com.mediscan.dto.ApiResponse;
 import com.mediscan.entity.User;
@@ -33,8 +34,12 @@ public class UserController {
   }
 
   @PutMapping("/profile")
-  public ResponseEntity<ApiResponse<User>> updateProfile(@RequestBody User update, Principal principal) {
+  public ResponseEntity<ApiResponse<User>> updateProfile(@RequestBody Map<String, String> payload, Principal principal) {
     User user = authService.getCurrentUser(principal.getName()).orElseThrow();
-    return ResponseEntity.ok(ApiResponse.success("Profile updated", userService.updateUserProfile(user, update.getName(), update.getEmail())));
+    String name = payload.get("name");
+    String email = payload.get("email");
+    String password = payload.get("password");
+    User updated = userService.updateUserProfile(user, name, email, password);
+    return ResponseEntity.ok(ApiResponse.success("Profile updated successfully", updated));
   }
 }

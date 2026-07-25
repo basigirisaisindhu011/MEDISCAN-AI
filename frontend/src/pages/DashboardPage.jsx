@@ -1,21 +1,23 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 import { FiClipboard, FiActivity, FiClock, FiUser } from 'react-icons/fi';
-
-const api = axios.create({ baseURL: import.meta.env.VITE_API_URL + "/api" });
+import api from '../api';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({ totalPrescriptions: 0, medicinesExtracted: 0, recentUploads: 0, confidence: 0 });
   const [prescriptions, setPrescriptions] = useState([]);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    api.defaults.headers.common.Authorization = `Bearer ${token}`;
     api.get('/prescriptions').then((res) => {
-      setPrescriptions(res.data.data || []);
-      setStats({ totalPrescriptions: (res.data.data || []).length, medicinesExtracted: (res.data.data || []).reduce((sum, item) => sum + (item.medicines?.length || 0), 0), recentUploads: Math.min((res.data.data || []).length, 5), confidence: 92 });
-    });
+      const data = res.data.data || [];
+      setPrescriptions(data);
+      setStats({ 
+        totalPrescriptions: data.length, 
+        medicinesExtracted: data.reduce((sum, item) => sum + (item.medicines?.length || 0), 0), 
+        recentUploads: Math.min(data.length, 5), 
+        confidence: data.length > 0 ? 92 : 0 
+      });
+    }).catch((err) => console.error("Failed to load dashboard data", err));
   }, []);
 
   return (
@@ -47,7 +49,7 @@ export default function DashboardPage() {
         </div>
         <div className="mt-4 space-y-3">
           {prescriptions.slice(0, 5).map((prescription) => (
-            <Link key={prescription.id} to={`/prescriptions/${prescription.id}`} className="flex items-center justify-between rounded-2xl border border-slate-200 p-4">
+            <Link key={prescription.id} to={`/prescriptions/${prescription.id}`} className="flex items-center justify-between rounded-2xl border border-slate-200 p-4 hover:bg-slate-50 transition">
               <div>
                 <div className="font-medium">{prescription.doctorName || 'Doctor'}</div>
                 <div className="text-sm text-slate-500">{prescription.hospitalName || 'Hospital'} · {prescription.prescriptionDate || 'Unknown date'}</div>
@@ -55,6 +57,9 @@ export default function DashboardPage() {
               <div className="text-sm text-blue-600">Open</div>
             </Link>
           ))}
+          {prescriptions.length === 0 && (
+            <div className="text-slate-500 text-sm py-4 text-center">No prescriptions uploaded yet.</div>
+          )}
         </div>
       </div>
     </div>

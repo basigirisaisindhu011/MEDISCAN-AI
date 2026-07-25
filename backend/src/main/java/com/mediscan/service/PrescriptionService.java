@@ -40,7 +40,7 @@ public class PrescriptionService {
         Map<String, Object> parsed = (Map<String, Object>) response.getOrDefault("parsed", Map.of());
 
         Prescription prescription = new Prescription();
-        prescription.setImagePath(path.toString());
+        prescription.setImagePath("uploads/" + fileName);
         prescription.setExtractedText(extractedText);
         prescription.setDoctorName(String.valueOf(parsed.getOrDefault("doctorName", "")));
         prescription.setHospitalName(String.valueOf(parsed.getOrDefault("hospital", "")));
